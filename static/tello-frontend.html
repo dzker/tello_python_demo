@@ -1,136 +1,146 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Tello Drone Control</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            margin-top: 20px;
-        }
-        #status, #qr-status {
-            margin: 20px auto;
-            padding: 10px;
-            border-radius: 5px;
-            width: 80%;
-            max-width: 600px;
-            font-size: 1.2em;
-        }
-        #status {
-            background-color: #f0f0f0;
-        }
-        #qr-status {
-            background-color: #f9f9f9;
-        }
-        .video-feed {
-            margin: 20px auto;
-            max-width: 640px;
-            border: 2px solid #333;
-        }
-        .guide {
-            margin: 20px auto;
-            padding: 15px;
-            border: 1px solid #ccc;
-            border-radius: 10px;
-            background-color: #f7f7f7;
-            max-width: 600px;
-            text-align: left;
-        }
-        .guide h2 {
-            margin-bottom: 10px;
-            font-size: 1.5em;
-        }
-        .guide ul {
-            list-style: none;
-            padding: 0;
-        }
-        .guide li {
-            margin: 5px 0;
-            font-size: 1.1em;
-        }
-        .guide li span {
-            font-weight: bold;
-            font-family: monospace;
-        }
+      body {
+        font-family: Arial, sans-serif;
+        text-align: center;
+        margin-top: 20px;
+      }
+      #status,
+      #qr-status,
+      #battery-status {
+        margin: 20px auto;
+        padding: 10px;
+        border-radius: 5px;
+        width: 80%;
+        max-width: 600px;
+        font-size: 1.2em;
+      }
+      #status {
+        background-color: #f0f0f0;
+      }
+      #qr-status {
+        background-color: #f9f9f9;
+      }
+      #battery-status {
+        background-color: #e0f7fa;
+      }
+      .video-feed {
+        margin: 20px auto;
+        max-width: 640px;
+        border: 2px solid #333;
+      }
+      .guide {
+        margin: 20px auto;
+        padding: 15px;
+        border: 1px solid #ccc;
+        border-radius: 10px;
+        background-color: #f7f7f7;
+        max-width: 600px;
+        text-align: left;
+      }
+      .guide h2 {
+        margin-bottom: 10px;
+        font-size: 1.5em;
+      }
+      .guide ul {
+        list-style: none;
+        padding: 0;
+      }
+      .guide li {
+        margin: 5px 0;
+        font-size: 1.1em;
+      }
+      .guide li span {
+        font-weight: bold;
+        font-family: monospace;
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <h1>Tello Drone Control</h1>
     <div id="status">Connected: Waiting for commands...</div>
     <div class="video-feed">
-        <img id="video-stream" alt="Drone Video Feed" style="width: 100%;">
+      <img id="video-stream" alt="Drone Video Feed" style="width: 100%" />
     </div>
     <div id="qr-status">QR Code: Not Detected</div>
+    <div id="battery-status">Battery: Unknown</div>
     <div class="guide">
-        <h2>Movement Guide</h2>
-        <ul>
-            <li><span>Arrow Up:</span> Move Forward</li>
-            <li><span>Arrow Down:</span> Move Backward</li>
-            <li><span>Arrow Left:</span> Move Left</li>
-            <li><span>Arrow Right:</span> Move Right</li>
-            <li><span>W:</span> Move Up</li>
-            <li><span>S:</span> Move Down</li>
-            <li><span>A:</span> Rotate Counter-Clockwise</li>
-            <li><span>D:</span> Rotate Clockwise</li>
-            <li><span>T:</span> Takeoff</li>
-            <li><span>L:</span> Land</li>
-        </ul>
+      <h2>Movement Guide</h2>
+      <ul>
+        <li><span>Arrow Up:</span> Move Forward</li>
+        <li><span>Arrow Down:</span> Move Backward</li>
+        <li><span>Arrow Left:</span> Move Left</li>
+        <li><span>Arrow Right:</span> Move Right</li>
+        <li><span>W:</span> Move Up</li>
+        <li><span>S:</span> Move Down</li>
+        <li><span>A:</span> Rotate Counter-Clockwise</li>
+        <li><span>D:</span> Rotate Clockwise</li>
+        <li><span>T:</span> Takeoff</li>
+        <li><span>L:</span> Land</li>
+      </ul>
     </div>
 
     <script>
-        let ws = null;
-        const status = document.getElementById('status');
-        const qrStatus = document.getElementById('qr-status');
+      let ws = null;
+      const status = document.getElementById("status");
+      const qrStatus = document.getElementById("qr-status");
+      const batteryStatus = document.getElementById("battery-status");
 
-        function connectWebSocket() {
-            ws = new WebSocket('ws://localhost:8000/ws');
-            
-            ws.onopen = () => {
-                status.textContent = 'Connected to drone';
-                status.style.backgroundColor = '#90EE90';
-            };
-            
-            ws.onclose = () => {
-                status.textContent = 'Disconnected from drone';
-                status.style.backgroundColor = '#FFB6C1';
-                setTimeout(connectWebSocket, 2000); // Reconnect after 2 seconds
-            };
-            
-            ws.onmessage = (event) => {
-                if (event.data.startsWith("QR Code Detected:")) {
-                    qrStatus.textContent = event.data;
-                    qrStatus.style.backgroundColor = '#FFFFE0';
-                } else {
-                    qrStatus.textContent = "QR Code: Not Detected";
-                    qrStatus.style.backgroundColor = '#f9f9f9';
-                }
-            };
-        }
+      function connectWebSocket() {
+        ws = new WebSocket("ws://localhost:8000/ws");
 
-        connectWebSocket();
-
-        const commandMap = {
-            'ArrowUp': 'forward',
-            'ArrowDown': 'backward',
-            'ArrowLeft': 'left',
-            'ArrowRight': 'right',
-            'w': 'up',
-            's': 'down',
-            'a': 'rotate_ccw',
-            'd': 'rotate_cw',
-            't': 'takeoff',
-            'l': 'land'
+        ws.onopen = () => {
+          status.textContent = "Connected to drone";
+          status.style.backgroundColor = "#90EE90";
         };
 
-        // Send commands via keyboard
-        document.addEventListener('keydown', (event) => {
-            const command = commandMap[event.key];
-            if (command && ws && ws.readyState === WebSocket.OPEN) {
-                ws.send(command);
-            }
-        });
+        ws.onclose = () => {
+          status.textContent = "Disconnected from drone";
+          status.style.backgroundColor = "#FFB6C1";
+          setTimeout(connectWebSocket, 2000); // Reconnect after 2 seconds
+        };
+
+        ws.onmessage = (event) => {
+          if (event.data.startsWith("QR Code Detected:")) {
+            qrStatus.textContent = event.data;
+            qrStatus.style.backgroundColor = "#FFFFE0";
+          } else if (event.data.startsWith("Battery Level:")) {
+            batteryStatus.textContent = event.data;
+            batteryStatus.style.backgroundColor = "#e0f7fa";
+          } else {
+            qrStatus.textContent = "QR Code: Not Detected";
+            qrStatus.style.backgroundColor = "#f9f9f9";
+          }
+        };
+      }
+
+      connectWebSocket();
+
+      const commandMap = {
+        ArrowUp: "forward",
+        ArrowDown: "backward",
+        ArrowLeft: "left",
+        ArrowRight: "right",
+        w: "up",
+        s: "down",
+        a: "rotate_ccw",
+        d: "rotate_cw",
+        t: "takeoff",
+        l: "land",
+      };
+
+      // Send commands via keyboard
+      document.addEventListener("keydown", (event) => {
+        const command = commandMap[event.key];
+        if (command && ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(command);
+        }
+      });
     </script>
-</body>
+  </body>
 </html>

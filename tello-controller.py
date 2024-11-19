@@ -26,21 +26,21 @@ class TelloController:
     async def handle_command(self, command: str) -> str:
         try:
             if command == "forward":
-                self.tello.move_forward(30)
+                self.tello.move_forward(10)
             elif command == "backward":
-                self.tello.move_back(30)
+                self.tello.move_back(10)
             elif command == "left":
-                self.tello.move_left(30)
+                self.tello.move_left(10)
             elif command == "right":
-                self.tello.move_right(30)
+                self.tello.move_right(10)
             elif command == "up":
-                self.tello.move_up(30)
+                self.tello.move_up(10)
             elif command == "down":
-                self.tello.move_down(30)
+                self.tello.move_down(10)
             elif command == "rotate_ccw":
-                self.tello.rotate_counter_clockwise(30)
+                self.tello.rotate_counter_clockwise(10)
             elif command == "rotate_cw":
-                self.tello.rotate_clockwise(30)
+                self.tello.rotate_clockwise(10)
             elif command == "takeoff":
                 self.tello.takeoff()
             elif command == "land":
@@ -69,7 +69,7 @@ class TelloController:
                     else:
                         self.qr_data = None
                 # Display the video feed with OpenCV (optional for debugging)
-                # cv2.imshow("Tello Video Feed", frame)
+                cv2.imshow("Tello Video Feed", frame)
                 if cv2.waitKey(1) & 0xFF == ord('q'):
                     break
         cv2.destroyAllWindows()
@@ -100,8 +100,12 @@ async def websocket_endpoint(websocket: WebSocket):
             else:
                 await websocket.send_text("No QR Code Detected")
 
+            # Fetch battery level and send it
+            battery = tello_controller.tello.get_battery()
+            await websocket.send_text(f"Battery Level: {battery}%")
+
             # Wait briefly to reduce server load
-            await asyncio.sleep(0.1)
+            await asyncio.sleep(0.5)
     except Exception as e:
         print(f"WebSocket error: {e}")
     finally:
